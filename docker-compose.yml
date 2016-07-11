@@ -1,0 +1,52 @@
+version: '2'
+services:
+  database:
+    image: postgres
+    environment:
+      POSTGRES_USER: simon
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: hackaton
+    volumes:
+      - "./datas/postgresql:/var/lib/postgresql/data"
+
+  taigaback:
+    image: ipedrazas/taiga-back
+    links:
+      - database:postgres
+    ports:
+      - "8000:8000"
+    environment:
+      TAIGA_DB_NAME: hackaton
+      TAIGA_DB_HOST: db
+      TAIGA_DB_USER: simon
+      TAIGA_DB_PASSWORD: password
+    volumes:
+      - "./datas/taigaback:/usr/src/taiga-back/media"
+
+  taigafront:
+    image: ipedrazas/taiga-front
+    links:
+      - taigaback:taiga-back
+    ports:
+      - "10080:80"
+    environment:
+      - "API_NAME=boot2docker"
+
+  gogs:
+    image: gogs/gogs
+    links:
+      - database
+    ports:
+      - "10022:22"
+      - "10081:3000"
+    volumes:
+      - "./datas/gogs:/data"
+
+  gitlab:
+    image: gitlab/gitlab-ce
+    ports:
+      - "10082:80"
+    volumes:
+      - "./datas/gitlab/config:/etc/gitlab"
+      - "./datas/gitlab/data:/var/opt/gitlab"
+      - "./datas/gitlab/logs:/var/log/gitlab"
